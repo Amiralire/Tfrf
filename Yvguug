@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# نصب WireGuard در ترموکس
+pkg update -y && pkg install wireguard-tools -y
+
+# تولید کلیدها
+wg genkey | tee privatekey | wg pubkey > publickey
+
+# تنظیمات سرور WireGuard
+server_ip="YOUR_SERVER_IP"
+server_port="51820"
+
+# پیکربندی سرور WireGuard
+cat <<EOF > /etc/wireguard/wg0.conf
+[Interface]
+PrivateKey = $(cat privatekey)
+Address = 10.0.0.1/24
+ListenPort = $server_port
+
+[Peer]
+PublicKey = $(cat publickey)
+AllowedIPs = 0.0.0.0/0, ::/0
+EOF
+
+# شروع سرویس
+wg-quick up wg0
+
+# نمایش کلیدهای رجیستری
+echo "Server Public Key: $(cat publickey)"
